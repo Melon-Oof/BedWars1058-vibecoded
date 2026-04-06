@@ -17,8 +17,8 @@
             <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
         </repository>
         <repository>
-            <id>andrei1058-releases</id>
-            <url>https://repo.andrei1058.dev/releases/</url>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
         </repository>
     </repositories>
 
