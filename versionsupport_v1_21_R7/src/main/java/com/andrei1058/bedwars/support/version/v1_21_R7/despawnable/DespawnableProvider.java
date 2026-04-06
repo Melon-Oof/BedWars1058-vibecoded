@@ -3,7 +3,6 @@ package com.andrei1058.bedwars.support.version.v1_21_R7.despawnable;
 import com.andrei1058.bedwars.api.arena.team.ITeam;
 import com.andrei1058.bedwars.api.server.VersionSupport;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityCreature;
 import net.minecraft.world.entity.EntityInsentient;
 import net.minecraft.world.entity.ai.goal.PathfinderGoal;
 import net.minecraft.world.entity.ai.goal.PathfinderGoalSelector;
@@ -30,21 +29,21 @@ public abstract class DespawnableProvider<T> {
         return null == despawnable || despawnable.getTeam() != team;
     }
 
-    protected PathfinderGoalSelector getTargetSelector(@NotNull EntityCreature entity) {
+    protected PathfinderGoalSelector getTargetSelector(@NotNull EntityInsentient entity) {
         return entity.targetSelector;
     }
 
-    protected PathfinderGoalSelector getGoalSelector(@NotNull EntityCreature entity) {
+    protected PathfinderGoalSelector getGoalSelector(@NotNull EntityInsentient entity) {
         return entity.goalSelector;
     }
 
-    protected void clearSelectors(@NotNull EntityCreature entity) {
+    protected void clearSelectors(@NotNull EntityInsentient entity) {
         entity.goalSelector.removeAllGoals(g -> true);
         entity.targetSelector.removeAllGoals(g -> true);
     }
 
     protected PathfinderGoal getTargetGoal(EntityInsentient entity, ITeam team, VersionSupport api) {
-        return new PathfinderGoalNearestAttackableTarget<>(entity, EntityHuman.class, 20, true, false,
+        return new PathfinderGoalNearestAttackableTarget<EntityHuman>(entity, EntityHuman.class, 20, true, false,
                 livingEntity -> {
                     if (livingEntity instanceof EntityHuman nmsPlayer) {
                         return !nmsPlayer.getBukkitEntity().isDead()
@@ -63,8 +62,8 @@ public abstract class DespawnableProvider<T> {
         bukkitEntity.setCustomNameVisible(true);
         bukkitEntity.setCustomName(getDisplayName(attr, team));
 
-        Objects.requireNonNull(bukkitEntity.getAttribute(Attribute.GENERIC_MAX_HEALTH)).setBaseValue(attr.health());
-        Objects.requireNonNull(bukkitEntity.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED)).setBaseValue(attr.speed());
-        Objects.requireNonNull(bukkitEntity.getAttribute(Attribute.GENERIC_ATTACK_DAMAGE)).setBaseValue(attr.damage());
+        Objects.requireNonNull(bukkitEntity.getAttribute(Attribute.MAX_HEALTH)).setBaseValue(attr.health());
+        Objects.requireNonNull(bukkitEntity.getAttribute(Attribute.MOVEMENT_SPEED)).setBaseValue(attr.speed());
+        Objects.requireNonNull(bukkitEntity.getAttribute(Attribute.ATTACK_DAMAGE)).setBaseValue(attr.damage());
     }
 }

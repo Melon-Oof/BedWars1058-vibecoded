@@ -8,7 +8,7 @@ import net.minecraft.world.entity.ai.goal.PathfinderGoalFloat;
 import net.minecraft.world.entity.ai.goal.PathfinderGoalMeleeAttack;
 import net.minecraft.world.entity.ai.goal.PathfinderGoalRandomLookaround;
 import net.minecraft.world.entity.ai.goal.PathfinderGoalRandomStroll;
-import net.minecraft.world.entity.EntityCreature;
+import net.minecraft.world.entity.EntityInsentient;
 import net.minecraft.world.entity.ai.goal.target.PathfinderGoalHurtByTarget;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.Location;
@@ -43,7 +43,7 @@ public class TeamIronGolem extends DespawnableProvider<org.bukkit.entity.IronGol
                 .spawnEntity(location, EntityType.IRON_GOLEM);
         applyDefaultSettings(bukkitEntity, attr, team);
 
-        var entity = (EntityCreature) ((CraftEntity) bukkitEntity).getHandle();
+        var entity = (EntityInsentient) ((CraftEntity) bukkitEntity).getHandle();
 
         clearSelectors(entity);
         var goalSelector = getGoalSelector(entity);
