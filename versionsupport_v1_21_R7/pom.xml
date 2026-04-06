@@ -33,17 +33,12 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>org.spigotmc</groupId>
-            <artifactId>spigot</artifactId>
+            <groupId>io.papermc.paper</groupId>
+            <artifactId>paper</artifactId>
             <version>1.21.11-R0.1-SNAPSHOT</version>
+            <classifier>mojang-mapped</classifier>
             <type>jar</type>
             <scope>provided</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>commons-codec</groupId>
-                    <artifactId>commons-codec</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
     </dependencies>
 
