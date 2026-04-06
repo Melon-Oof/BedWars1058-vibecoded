@@ -33,10 +33,9 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>io.papermc.paper</groupId>
-            <artifactId>paper</artifactId>
+            <groupId>org.spigotmc</groupId>
+            <artifactId>spigot</artifactId>
             <version>1.21.11-R0.1-SNAPSHOT</version>
-            <classifier>mojang-mapped</classifier>
             <type>jar</type>
             <scope>provided</scope>
         </dependency>
