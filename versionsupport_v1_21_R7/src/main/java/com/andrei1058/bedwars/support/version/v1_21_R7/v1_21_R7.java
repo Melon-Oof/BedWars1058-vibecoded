@@ -815,16 +815,7 @@ public class v1_21_R7 extends VersionSupport {
     /** Creates a {@link PacketPlayOutSpawnEntity} for any entity (including players). */
     private static PacketPlayOutSpawnEntity createSpawnEntityPacket(
             @NotNull net.minecraft.world.entity.Entity entity) {
-        return new PacketPlayOutSpawnEntity(
-                entity.getId(),
-                entity.getUUID(),
-                entity.getX(), entity.getY(), entity.getZ(),
-                entity.getXRot(), entity.getYRot(),
-                entity.getType(),
-                0,
-                entity.getDeltaMovement(),
-                entity.getYHeadRot()
-        );
+        return new PacketPlayOutSpawnEntity(entity);
     }
 
     private void sendPacket(Player player, Packet<?> packet) {
