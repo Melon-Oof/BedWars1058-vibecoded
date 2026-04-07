@@ -4,9 +4,7 @@ import com.andrei1058.spigot.sidebar.*;
 import net.minecraft.network.chat.IChatBaseComponent;
 import net.minecraft.network.protocol.game.PacketPlayOutPlayerListHeaderFooter;
 import net.minecraft.network.protocol.game.PacketPlayOutScoreboardScore;
-import net.minecraft.server.network.PlayerConnection;
 import net.minecraft.world.scores.criteria.IScoreboardCriteria;
-import org.bukkit.craftbukkit.v1_21_R7.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -44,8 +42,7 @@ public class ProviderImpl extends SidebarProvider {
                 Optional.empty()
         );
         for (Player player : sidebar.getReceivers()) {
-            PlayerConnection playerConnection = ((CraftPlayer) player).getHandle().f;
-            playerConnection.b(packetPlayOutScoreboardScore);
+            PacketSender.send(player, packetPlayOutScoreboardScore);
         }
     }
 
@@ -57,7 +54,7 @@ public class ProviderImpl extends SidebarProvider {
     @Override
     public void sendHeaderFooter(Player player, String header, String footer) {
         PacketPlayOutPlayerListHeaderFooter packet = new PacketPlayOutPlayerListHeaderFooter(IChatBaseComponent.b(header), IChatBaseComponent.b(footer));
-        ((CraftPlayer)player).getHandle().f.b(packet);
+        PacketSender.send(player, packet);
     }
 
     public static SidebarProvider getInstance() {

@@ -7,13 +7,11 @@ import net.minecraft.network.chat.IChatBaseComponent;
 import net.minecraft.network.chat.IChatMutableComponent;
 import net.minecraft.network.chat.numbers.FixedFormat;
 import net.minecraft.network.protocol.game.*;
-import net.minecraft.server.network.PlayerConnection;
 import net.minecraft.world.scores.DisplaySlot;
 import net.minecraft.world.scores.ScoreboardObjective;
 import net.minecraft.world.scores.ScoreboardScore;
 import net.minecraft.world.scores.ScoreboardTeam;
 import net.minecraft.world.scores.criteria.IScoreboardCriteria;
-import org.bukkit.craftbukkit.v1_21_R7.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -61,12 +59,21 @@ public class SidebarImpl extends WrappedSidebar {
 
         @Override
         public void sendCreate(Player player) {
-            this.sendCreate(((CraftPlayer) player).getHandle().f);
+            var packetPlayOutScoreboardObjective = new PacketPlayOutScoreboardObjective(this, 0);
+            PacketSender.send(player, packetPlayOutScoreboardObjective);
+            var packetPlayOutScoreboardDisplayObjective = new PacketPlayOutScoreboardDisplayObjective(type, this);
+            PacketSender.send(player, packetPlayOutScoreboardDisplayObjective);
+
+            if (b().equalsIgnoreCase("health")) {
+                var packetPlayOutScoreboardDisplayObjective2 = new PacketPlayOutScoreboardDisplayObjective(DisplaySlot.a, this);
+                PacketSender.send(player, packetPlayOutScoreboardDisplayObjective2);
+            }
         }
 
         @Override
         public void sendRemove(Player player) {
-            this.sendRemove(((CraftPlayer) player).getHandle().f);
+            PacketPlayOutScoreboardObjective packetPlayOutScoreboardObjective = new PacketPlayOutScoreboardObjective(this, 1);
+            PacketSender.send(player, packetPlayOutScoreboardObjective);
         }
 
         @Override
@@ -108,27 +115,10 @@ public class SidebarImpl extends WrappedSidebar {
         public void a(IScoreboardCriteria.EnumScoreboardHealthDisplay var0) {
         }
 
-        private void sendCreate(@NotNull PlayerConnection playerConnection) {
-            var packetPlayOutScoreboardObjective = new PacketPlayOutScoreboardObjective(this, 0);
-            playerConnection.b(packetPlayOutScoreboardObjective);
-            var packetPlayOutScoreboardDisplayObjective = new PacketPlayOutScoreboardDisplayObjective(type, this);
-            playerConnection.b(packetPlayOutScoreboardDisplayObjective);
-
-            if (b().equalsIgnoreCase("health")) {
-                var packetPlayOutScoreboardDisplayObjective2 = new PacketPlayOutScoreboardDisplayObjective(DisplaySlot.a, this);
-                playerConnection.b(packetPlayOutScoreboardDisplayObjective2);
-            }
-        }
-
         // must be called when updating the name
         public void sendUpdate() {
             PacketPlayOutScoreboardObjective packetPlayOutScoreboardObjective = new PacketPlayOutScoreboardObjective(this, 2);
-            getReceivers().forEach(player -> ((CraftPlayer) player).getHandle().f.b(packetPlayOutScoreboardObjective));
-        }
-
-        public void sendRemove(@NotNull PlayerConnection playerConnection) {
-            PacketPlayOutScoreboardObjective packetPlayOutScoreboardObjective = new PacketPlayOutScoreboardObjective(this, 1);
-            playerConnection.b(packetPlayOutScoreboardObjective);
+            getReceivers().forEach(player -> PacketSender.send(player, packetPlayOutScoreboardObjective));
         }
     }
 
@@ -163,7 +153,7 @@ public class SidebarImpl extends WrappedSidebar {
                             getPlaceholders()
                     ))))
             );
-            getReceivers().forEach(r -> ((CraftPlayer) r).getHandle().f.b(packetPlayOutScoreboardScore));
+            getReceivers().forEach(r -> PacketSender.send(r, packetPlayOutScoreboardScore));
         }
 
         @Override
@@ -189,7 +179,7 @@ public class SidebarImpl extends WrappedSidebar {
         @Override
         public void sendCreateToAllReceivers() {
             PacketPlayOutScoreboardTeam packetPlayOutScoreboardTeam = PacketPlayOutScoreboardTeam.a(team, true);
-            getReceivers().forEach(p -> ((CraftPlayer) p).getHandle().f.b(packetPlayOutScoreboardTeam));
+            getReceivers().forEach(p -> PacketSender.send(p, packetPlayOutScoreboardTeam));
             PacketPlayOutScoreboardScore packetPlayOutScoreboardScore = new PacketPlayOutScoreboardScore(
                     this.getColor(),
                     getSidebarObjective().getName(),
@@ -201,14 +191,13 @@ public class SidebarImpl extends WrappedSidebar {
                             getPlaceholders()
                     ))))
             );
-            getReceivers().forEach(p -> ((CraftPlayer) p).getHandle().f.b(packetPlayOutScoreboardScore));
+            getReceivers().forEach(p -> PacketSender.send(p, packetPlayOutScoreboardScore));
         }
 
         @Override
         public void sendCreate(Player player) {
-            PlayerConnection conn = ((CraftPlayer) player).getHandle().f;
             PacketPlayOutScoreboardTeam packetPlayOutScoreboardTeam = PacketPlayOutScoreboardTeam.a(team, true);
-            conn.b(packetPlayOutScoreboardTeam);
+            PacketSender.send(player, packetPlayOutScoreboardTeam);
 
             PacketPlayOutScoreboardScore packetPlayOutScoreboardScore = new PacketPlayOutScoreboardScore(
                     this.getColor(),
@@ -221,30 +210,29 @@ public class SidebarImpl extends WrappedSidebar {
                             getPlaceholders()
                     ))))
             );
-            conn.b(packetPlayOutScoreboardScore);
+            PacketSender.send(player, packetPlayOutScoreboardScore);
         }
 
         @Override
         public void sendRemove(Player player) {
-            PlayerConnection conn = ((CraftPlayer) player).getHandle().f;
             // var1=1 means remove
             PacketPlayOutScoreboardTeam packetPlayOutScoreboardTeam = PacketPlayOutScoreboardTeam.a(team);
             var resetScore = new ClientboundResetScorePacket(team.b(), getSidebarObjective().getName());
-            conn.b(resetScore);
-            conn.b(packetPlayOutScoreboardTeam);
+            PacketSender.send(player, resetScore);
+            PacketSender.send(player, packetPlayOutScoreboardTeam);
         }
 
         public void sendRemoveToAllReceivers() {
             PacketPlayOutScoreboardTeam packetPlayOutScoreboardTeam = PacketPlayOutScoreboardTeam.a(team);
             var resetScore = new ClientboundResetScorePacket(team.b(), getSidebarObjective().getName());
-            getReceivers().forEach(p -> ((CraftPlayer) p).getHandle().f.b(resetScore));
-            getReceivers().forEach(p -> ((CraftPlayer) p).getHandle().f.b(packetPlayOutScoreboardTeam));
+            getReceivers().forEach(p -> PacketSender.send(p, resetScore));
+            getReceivers().forEach(p -> PacketSender.send(p, packetPlayOutScoreboardTeam));
         }
 
         public void sendUpdate(Player player) {
             // false=2 is for update packet, true=0 for create
             PacketPlayOutScoreboardTeam packetTeamUpdate = PacketPlayOutScoreboardTeam.a(team, false);
-            ((CraftPlayer) player).getHandle().f.b(packetTeamUpdate);
+            PacketSender.send(player, packetTeamUpdate);
         }
 
         @Contract(pure = true)
@@ -284,7 +272,7 @@ public class SidebarImpl extends WrappedSidebar {
         public void sendUpdateToAllReceivers() {
             // false=2 is for update packet, true=0 for create
             PacketPlayOutScoreboardTeam packetTeamUpdate = PacketPlayOutScoreboardTeam.a(team, false);
-            getReceivers().forEach(r -> ((CraftPlayer) r).getHandle().f.b(packetTeamUpdate));
+            getReceivers().forEach(r -> PacketSender.send(r, packetTeamUpdate));
         }
 
         public int compareTo(@NotNull ScoreLine o) {
