@@ -17,6 +17,8 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Optional;
 
@@ -64,7 +66,7 @@ public class SidebarImpl extends WrappedSidebar {
             var packetPlayOutScoreboardDisplayObjective = new PacketPlayOutScoreboardDisplayObjective(type, this);
             PacketSender.send(player, packetPlayOutScoreboardDisplayObjective);
 
-            if (b().equalsIgnoreCase("health")) {
+            if (a().equalsIgnoreCase("health")) {
                 var packetPlayOutScoreboardDisplayObjective2 = new PacketPlayOutScoreboardDisplayObjective(DisplaySlot.a, this);
                 PacketSender.send(player, packetPlayOutScoreboardDisplayObjective2);
             }
@@ -78,7 +80,7 @@ public class SidebarImpl extends WrappedSidebar {
 
         @Override
         public String getName() {
-            return super.b();
+            return super.a();
         }
 
         @Override
@@ -97,18 +99,12 @@ public class SidebarImpl extends WrappedSidebar {
         }
 
         @Override
-        public IChatBaseComponent d() {
+        public IChatMutableComponent c() {
             return displayNameComp;
         }
 
         @Override
         public void a(IChatBaseComponent var0) {
-        }
-
-        @Override
-        public IChatBaseComponent g() {
-            return IChatBaseComponent.b((this.d().toString()));
-
         }
 
         @Override
@@ -124,6 +120,26 @@ public class SidebarImpl extends WrappedSidebar {
 
 
     public class ScoreLineImpl extends ScoreboardScore implements ScoreLine, Comparable<ScoreLine> {
+
+        private static volatile PacketPlayOutScoreboardTeam.a scoreboardAddAction;
+
+        private static PacketPlayOutScoreboardTeam.a getScoreboardAddAction() {
+            if (scoreboardAddAction != null) return scoreboardAddAction;
+            try {
+                Class<?> cls = Class.forName("net.minecraft.network.protocol.game.PacketPlayOutScoreboardTeam$a");
+                for (Object obj : cls.getEnumConstants()) {
+                    Method m = cls.getMethod("name");
+                    String name = (String) m.invoke(obj);
+                    if ("ADD".equals(name) || "a".equals(name)) {
+                        scoreboardAddAction = (PacketPlayOutScoreboardTeam.a) obj;
+                        break;
+                    }
+                }
+            } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException |
+                     InvocationTargetException ignored) {
+            }
+            return scoreboardAddAction;
+        }
 
         private int score;
         private IChatMutableComponent prefix = IChatBaseComponent.b(" "), suffix = IChatBaseComponent.b(" ");
@@ -179,7 +195,11 @@ public class SidebarImpl extends WrappedSidebar {
         @Override
         public void sendCreateToAllReceivers() {
             PacketPlayOutScoreboardTeam packetPlayOutScoreboardTeam = PacketPlayOutScoreboardTeam.a(team, true);
-            getReceivers().forEach(p -> PacketSender.send(p, packetPlayOutScoreboardTeam));
+            PacketPlayOutScoreboardTeam addMemberPacket = PacketPlayOutScoreboardTeam.a(team, color, getScoreboardAddAction());
+            getReceivers().forEach(p -> {
+                PacketSender.send(p, packetPlayOutScoreboardTeam);
+                PacketSender.send(p, addMemberPacket);
+            });
             PacketPlayOutScoreboardScore packetPlayOutScoreboardScore = new PacketPlayOutScoreboardScore(
                     this.getColor(),
                     getSidebarObjective().getName(),
@@ -198,6 +218,8 @@ public class SidebarImpl extends WrappedSidebar {
         public void sendCreate(Player player) {
             PacketPlayOutScoreboardTeam packetPlayOutScoreboardTeam = PacketPlayOutScoreboardTeam.a(team, true);
             PacketSender.send(player, packetPlayOutScoreboardTeam);
+            PacketPlayOutScoreboardTeam addMemberPacket = PacketPlayOutScoreboardTeam.a(team, color, getScoreboardAddAction());
+            PacketSender.send(player, addMemberPacket);
 
             PacketPlayOutScoreboardScore packetPlayOutScoreboardScore = new PacketPlayOutScoreboardScore(
                     this.getColor(),
@@ -217,14 +239,14 @@ public class SidebarImpl extends WrappedSidebar {
         public void sendRemove(Player player) {
             // var1=1 means remove
             PacketPlayOutScoreboardTeam packetPlayOutScoreboardTeam = PacketPlayOutScoreboardTeam.a(team);
-            var resetScore = new ClientboundResetScorePacket(team.b(), getSidebarObjective().getName());
+            var resetScore = new ClientboundResetScorePacket(team.a(), getSidebarObjective().getName());
             PacketSender.send(player, resetScore);
             PacketSender.send(player, packetPlayOutScoreboardTeam);
         }
 
         public void sendRemoveToAllReceivers() {
             PacketPlayOutScoreboardTeam packetPlayOutScoreboardTeam = PacketPlayOutScoreboardTeam.a(team);
-            var resetScore = new ClientboundResetScorePacket(team.b(), getSidebarObjective().getName());
+            var resetScore = new ClientboundResetScorePacket(team.a(), getSidebarObjective().getName());
             getReceivers().forEach(p -> PacketSender.send(p, resetScore));
             getReceivers().forEach(p -> PacketSender.send(p, packetPlayOutScoreboardTeam));
         }
@@ -297,12 +319,12 @@ public class SidebarImpl extends WrappedSidebar {
 
             public TeamLine(String color) {
                 super(null, color);
-                g().add(color);
+                // Members are added via separate ADD packet in sendCreate/sendCreateToAllReceivers
             }
 
             @Contract(value = " -> new", pure = true)
             @Override
-            public @NotNull IChatBaseComponent e() {
+            public @NotNull IChatMutableComponent e() {
                 return prefix;
             }
 
@@ -316,7 +338,7 @@ public class SidebarImpl extends WrappedSidebar {
 
             @Contract(value = " -> new", pure = true)
             @Override
-            public @NotNull IChatBaseComponent f() {
+            public @NotNull IChatMutableComponent f() {
                 return suffix;
             }
 

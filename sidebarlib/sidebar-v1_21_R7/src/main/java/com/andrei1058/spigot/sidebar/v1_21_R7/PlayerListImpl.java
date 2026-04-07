@@ -160,11 +160,11 @@ public class PlayerListImpl extends ScoreboardTeam implements VersionedTabGroup 
         throw new RuntimeException("Something went wrong... please report this to SidebarLib by andrei1058");
     }
 
-    public @NotNull IChatBaseComponent e() {
+    public @NotNull IChatMutableComponent e() {
         return handle.getPrefixComp();
     }
 
-    public @NotNull IChatBaseComponent f() {
+    public @NotNull IChatMutableComponent f() {
         return handle.getSuffixComp();
     }
 
