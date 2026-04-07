@@ -349,6 +349,9 @@ public class v1_21_R7 extends VersionSupport {
             // (BlockBehaviour/BlockBase – name varies across NMS versions).
             Class<?> blockSuperClass = net.minecraft.world.level.block.Block.class.getSuperclass();
             Field field = null;
+            // Attempt known field names in priority order:
+            // "explosionResistance" = Mojang-mapped name (1.21.5+);
+            // "bl", "bm", "bn" = common obfuscated names from older Spigot builds.
             for (String fieldName : new String[]{"explosionResistance", "bl", "bm", "bn"}) {
                 try {
                     field = blockSuperClass.getDeclaredField(fieldName);
@@ -710,7 +713,7 @@ public class v1_21_R7 extends VersionSupport {
     @Override
     public void playRedStoneDot(@NotNull Player player) {
         Color color = Color.RED;
-        // ParticleParamRedstone(int packedRgb, float scale) in 1.21.5+
+        // Pack RGB into a single 24-bit int: red in bits 16-23, green in bits 8-15, blue in bits 0-7.
         int packedRgb = (color.getRed() << 16) | (color.getGreen() << 8) | color.getBlue();
         ParticleParamRedstone particleOptions = new ParticleParamRedstone(packedRgb, 1.0f);
         // PacketPlayOutWorldParticles: T, override, longCoords, x, y, z, offsetX, offsetY, offsetZ, speed, count
@@ -764,7 +767,10 @@ public class v1_21_R7 extends VersionSupport {
 
     /**
      * Creates a {@link NamespacedKey} for PersistentDataContainer storage.
-     * Keys are normalised to lowercase with invalid characters replaced by '_'.
+     * <p>
+     * Keys are normalised to lowercase (NamespacedKey requirement) with any characters
+     * outside {@code [a-z0-9_\-./ ]} replaced by {@code '_'} so that arbitrary plugin
+     * tag names (e.g. "generic.attackDamage") remain valid NamespacedKey values.
      */
     private NamespacedKey makeKey(String key) {
         String safeKey = key.toLowerCase(java.util.Locale.ROOT).replaceAll("[^a-z0-9_\\-./]", "_");
