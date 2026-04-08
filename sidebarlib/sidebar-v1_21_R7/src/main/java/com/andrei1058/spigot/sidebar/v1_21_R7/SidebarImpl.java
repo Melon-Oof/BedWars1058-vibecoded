@@ -39,12 +39,14 @@ public class SidebarImpl extends WrappedSidebar {
 
     protected class SidebarObjectiveImpl extends ScoreboardObjective implements SidebarObjective {
 
+        private final String objectiveName;
         private SidebarLine displayName;
         private IChatMutableComponent displayNameComp = IChatBaseComponent.b("");
         private final DisplaySlot type;
 
         public SidebarObjectiveImpl(String name, IScoreboardCriteria criteria, SidebarLine displayName, int type) {
             super(null, name, criteria, IChatBaseComponent.b(name), IScoreboardCriteria.EnumScoreboardHealthDisplay.a, false, null);
+            this.objectiveName = name;
             this.displayName = displayName;
             this.type = DisplaySlot.values()[type];
         }
@@ -66,7 +68,7 @@ public class SidebarImpl extends WrappedSidebar {
             var packetPlayOutScoreboardDisplayObjective = new PacketPlayOutScoreboardDisplayObjective(type, this);
             PacketSender.send(player, packetPlayOutScoreboardDisplayObjective);
 
-            if (b().equalsIgnoreCase("health")) {
+            if (objectiveName.equalsIgnoreCase("health")) {
                 var packetPlayOutScoreboardDisplayObjective2 = new PacketPlayOutScoreboardDisplayObjective(DisplaySlot.a, this);
                 PacketSender.send(player, packetPlayOutScoreboardDisplayObjective2);
             }
@@ -80,7 +82,7 @@ public class SidebarImpl extends WrappedSidebar {
 
         @Override
         public String getName() {
-            return super.b();
+            return objectiveName;
         }
 
         @Override
@@ -235,14 +237,14 @@ public class SidebarImpl extends WrappedSidebar {
         public void sendRemove(Player player) {
             // var1=1 means remove
             PacketPlayOutScoreboardTeam packetPlayOutScoreboardTeam = PacketPlayOutScoreboardTeam.a(team);
-            var resetScore = new ClientboundResetScorePacket(team.b(), getSidebarObjective().getName());
+            var resetScore = new ClientboundResetScorePacket(color, getSidebarObjective().getName());
             PacketSender.send(player, resetScore);
             PacketSender.send(player, packetPlayOutScoreboardTeam);
         }
 
         public void sendRemoveToAllReceivers() {
             PacketPlayOutScoreboardTeam packetPlayOutScoreboardTeam = PacketPlayOutScoreboardTeam.a(team);
-            var resetScore = new ClientboundResetScorePacket(team.b(), getSidebarObjective().getName());
+            var resetScore = new ClientboundResetScorePacket(color, getSidebarObjective().getName());
             getReceivers().forEach(p -> PacketSender.send(p, resetScore));
             getReceivers().forEach(p -> PacketSender.send(p, packetPlayOutScoreboardTeam));
         }
